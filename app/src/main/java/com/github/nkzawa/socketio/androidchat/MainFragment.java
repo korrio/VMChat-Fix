@@ -55,8 +55,10 @@ public class MainFragment extends Fragment {
     private boolean mTyping = false;
     private Handler mTypingHandler = new Handler();
     private String mUsername = "HeyHo";
-    private String mUserId = "6";
-    private String mCid = "345";
+    private int mUserId = 6;
+    private int mCid = 345;
+
+
 
     private Socket mSocket;
     {
@@ -88,6 +90,8 @@ public class MainFragment extends Fragment {
 
         setHasOptionsMenu(true);
 
+        getActivity().setTitle("userId:" + mUserId);
+
         mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
@@ -118,7 +122,7 @@ public class MainFragment extends Fragment {
         mSocket.on("JoinRoom:Success", onUserJoined);
         //mSocket.on("JoinRoomFailure", null);
 
-        mSocket.on("SendMessage", onNewMessage);
+        mSocket.on("SendMessage", onSendMessage);
 
 
         mSocket.on("LeaveRoom", onUserLeft);
@@ -148,8 +152,8 @@ public class MainFragment extends Fragment {
         mSocket.disconnect();
         mSocket.off(Socket.EVENT_CONNECT_ERROR, onConnectError);
         mSocket.off(Socket.EVENT_CONNECT_TIMEOUT, onConnectError);
-        mSocket.off("SendMessage", onNewMessage);
-        mSocket.off("JoinRoomSuccess", onUserJoined);
+        mSocket.off("SendMessage", onSendMessage);
+        mSocket.off("JoinRoom:Success", onUserJoined);
         mSocket.off("LeaveRoom", onUserLeft);
         mSocket.off("Typing", onTyping);
         mSocket.off("StopTyping", onStopTyping);
@@ -168,7 +172,7 @@ public class MainFragment extends Fragment {
             @Override
             public boolean onEditorAction(TextView v, int id, KeyEvent event) {
                 if (id == R.id.send || id == EditorInfo.IME_NULL) {
-                    attemptSend();
+                    attemptSendMessage();
                     return true;
                 }
                 return false;
@@ -211,7 +215,7 @@ public class MainFragment extends Fragment {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                attemptSend();
+                attemptSendMessage();
             }
         });
     }
@@ -251,15 +255,20 @@ public class MainFragment extends Fragment {
         addLog(getResources().getQuantityString(R.plurals.message_participants, numUsers, numUsers));
     }
 
-    private void addMessage(String username, String message) {
-        mMessages.add(new Message.Builder(Message.TYPE_MESSAGE)
-                .username(username).message(message).build());
+    private void addMessage(int userId,String username, String message) {
+
+        if(userId == mUserId)
+            mMessages.add(new Message.Builder(Message.TYPE_RIGHT)
+                    .username(username).message(message).build());
+        else
+            mMessages.add(new Message.Builder(Message.TYPE_LEFT)
+                    .username(username).message(message).build());
         mAdapter.notifyItemInserted(mMessages.size() - 1);
         scrollToBottom();
     }
 
     private void addTyping(String username) {
-        mMessages.add(new Message.Builder(Message.TYPE_ACTION)
+        mMessages.add(new Message.Builder(Message.TYPE_LEFT)
                 .username(username).build());
         mAdapter.notifyItemInserted(mMessages.size() - 1);
         scrollToBottom();
@@ -268,14 +277,14 @@ public class MainFragment extends Fragment {
     private void removeTyping(String username) {
         for (int i = mMessages.size() - 1; i >= 0; i--) {
             Message message = mMessages.get(i);
-            if (message.getType() == Message.TYPE_ACTION && message.getUsername().equals(username)) {
+            if (message.getType() == Message.TYPE_LEFT && message.getUsername().equals(username)) {
                 mMessages.remove(i);
                 mAdapter.notifyItemRemoved(i);
             }
         }
     }
 
-    private void attemptSend() {
+    private void attemptSendMessage() {
         if (null == mUsername) return;
         if (!mSocket.connected()) return;
 
@@ -288,7 +297,7 @@ public class MainFragment extends Fragment {
         }
 
         mInputMessageView.setText("");
-        addMessage(mUsername, message);
+        //addMessage(mUsername, message);
 
         JSONObject jObj = new JSONObject();
         JSONObject jObj2 = new JSONObject();
@@ -328,6 +337,19 @@ public class MainFragment extends Fragment {
         @Override
         public void call(Object... args) {
 
+            JSONObject jObj = new JSONObject();
+
+
+            try {
+
+                jObj.put("conversationId" , mCid);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+            mSocket.emit("JoinRoom",jObj);
         }
     };
 
@@ -351,27 +373,34 @@ public class MainFragment extends Fragment {
         }
     };
 
-    private Emitter.Listener onNewMessage = new Emitter.Listener() {
+    private Emitter.Listener onSendMessage = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
+
+            Log.e("5555",args.toString());
+
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     JSONObject data = (JSONObject) args[0];
                     String username;
                     String message;
+                    int senderId;
+
                     try {
                         //data.getString("time");
                         Log.e("JSON",data.toString(4));
-                        username = data.getString("senderId");
+                        username = "userId:" + data.optInt("senderId");
+                        senderId = data.optInt("senderId");
                         message = data.optString("message");
+
 
                     } catch (JSONException e) {
                         return;
                     }
-
+                Log.e("Chevkclvkj",data.toString());
                     removeTyping(username);
-                    addMessage(username, message);
+                    addMessage(senderId,username, message);
                 }
             });
         }
@@ -380,21 +409,15 @@ public class MainFragment extends Fragment {
     private Emitter.Listener onUserJoined = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
+            //Log.e("6666",args.toString());
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    JSONObject data = (JSONObject) args[0];
-                    String username;
-                    int numUsers;
-                    try {
-                        username = data.getString("username");
-                        numUsers = data.getInt("numUsers");
-                    } catch (JSONException e) {
-                        return;
-                    }
 
-                    addLog(getResources().getString(R.string.message_user_joined, username));
-                    addParticipantsLog(numUsers);
+                    Toast.makeText(getActivity(),"เข้าแล้ว",Toast.LENGTH_SHORT).show();
+
+                    //addLog(getResources().getString(R.string.message_user_joined, username));
+                    //addParticipantsLog(numUsers);
                 }
             });
         }
