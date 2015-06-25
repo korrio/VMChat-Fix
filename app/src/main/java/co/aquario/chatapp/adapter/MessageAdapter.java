@@ -1,4 +1,4 @@
-package com.github.nkzawa.socketio.androidchat;
+package co.aquario.chatapp.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -10,6 +10,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import co.aquario.chatapp.R;
+import co.aquario.chatapp.model.Message;
 
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
@@ -34,6 +35,10 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         case Message.TYPE_LEFT:
             layout = R.layout.item_left;
             break;
+        //log
+        case Message.TYPE_LOG:
+                layout = R.layout.item_log;
+                break;
         }
 
         View v = LayoutInflater.from(parent.getContext()).inflate(layout, parent, false);

@@ -1,4 +1,4 @@
-package com.github.nkzawa.socketio.androidchat;
+package co.aquario.chatapp.fragment;
 
 
 import android.app.Activity;
@@ -42,15 +42,16 @@ import java.util.List;
 import javax.net.ssl.SSLContext;
 
 import co.aquario.chatapp.R;
+import co.aquario.chatapp.adapter.MessageAdapter;
 import co.aquario.chatapp.event.request.ConversationEvent;
 import co.aquario.chatapp.event.response.ConversationEventSuccess;
-import co.aquario.chatapp.event.response.SuccessEvent;
 import co.aquario.chatapp.handler.ApiBus;
+import co.aquario.chatapp.model.Message;
 
 /**
  * A chat fragment containing messages view and input form.
  */
-public class MainFragment extends Fragment {
+public class ChatFragment extends BaseFragment {
     private String socketUrl = "https://chat.vdomax.com:1313";
     private static final int REQUEST_LOGIN = 0;
     private static final int TYPING_TIMER_LENGTH = 600;
@@ -61,9 +62,12 @@ public class MainFragment extends Fragment {
     private RecyclerView.Adapter mAdapter;
     private boolean mTyping = false;
     private Handler mTypingHandler = new Handler();
-    private String mUsername = "HeyHo";
     private int mUserId = 6;
+    private int mPartnerId = 1;
     private int mCid = 1751;
+
+    private String mUsername = "";
+
 
     private Socket mSocket;
     {
@@ -88,12 +92,16 @@ public class MainFragment extends Fragment {
         }
     }
 
-    public MainFragment() {
+    public ChatFragment() {
     }
 
-    public static Fragment newInstance() {
-        MainFragment chatFragment = new MainFragment();
-        return chatFragment;
+    public static Fragment newInstance(int userId, int partnerId) {
+        ChatFragment mFragment = new ChatFragment();
+        Bundle mBundle = new Bundle();
+        mBundle.putInt("USER_ID_1", userId);
+        mBundle.putInt("USER_ID_2", partnerId);
+        mFragment.setArguments(mBundle);
+        return mFragment;
     }
 
 
@@ -107,19 +115,24 @@ public class MainFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        getActivity().setTitle("userId:" + mUserId);
+        if(getArguments() != null) {
+            mUserId = getArguments().getInt("USER_ID_1");
+            mPartnerId = getArguments().getInt("USER_ID_2");
+        }
 
-        ApiBus.getInstance().post(new ConversationEvent(1,6));
-        //ApiBus.getInstance().post(new SomeEvent("hey",6));
-    }
-
-    @Subscribe public void onSuccesEvent(SuccessEvent event) {
-        Log.e("event",event.getSomeResponse().author);
+        getActivity().setTitle(mUserId + ":" + mPartnerId);
+        ApiBus.getInstance().post(new ConversationEvent(mUserId,mPartnerId));
     }
 
     @Subscribe
-    public void onConversationEventSuccess(ConversationEventSuccess event) {
-        Log.e("mCid"," is "+ event.mCid);
+    public void onGetConversationId(ConversationEventSuccess event) {
+        mCid = event.mCid;
+        Log.e("HEY555",mCid + "");
+        addLog(getResources().getString(R.string.message_welcome));
+
+        getActivity().setTitle(mUserId + ":" + mPartnerId + " in " + mCid);
+
+        initConnect();
     }
 
     public void initConnect() {
@@ -274,7 +287,6 @@ public class MainFragment extends Fragment {
         mUsername = data.getStringExtra("username");
         int numUsers = data.getIntExtra("numUsers", 1);
 
-        addLog(getResources().getString(R.string.message_welcome));
         addParticipantsLog(numUsers);
     }
 
@@ -441,8 +453,7 @@ public class MainFragment extends Fragment {
                     } catch (JSONException e) {
                         return;
                     }
-                Log.e("Chevkclvkj",data.toString());
-                    removeTyping(username);
+                    //removeTyping(username);
                     if(mUserId != senderId)
                         addMessage(senderId,username, message);
                 }
@@ -483,11 +494,7 @@ public class MainFragment extends Fragment {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-
-
-
                     Toast.makeText(getActivity(),"เข้าแล้ว",Toast.LENGTH_SHORT).show();
-
                     //addLog(getResources().getString(R.string.message_user_joined, username));
                     //addParticipantsLog(numUsers);
                 }
