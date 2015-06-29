@@ -4,7 +4,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context=".MainFragment">
+        tools:mContext=".MainFragment">
 
     <android.support.v7.widget.RecyclerView
             android:id="@+id/messages"
@@ -14,34 +14,36 @@
             android:paddingLeft="@dimen/activity_horizontal_margin"
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:scrollbars="vertical"
-            android:scrollbarStyle="outsideOverlay"/>
-    <LinearLayout
-            android:layout_width="match_parent"
+            android:scrollbarStyle="outsideOverlay"
+        android:background="@drawable/bg_chat" />
+
+
+        <LinearLayout
+            android:id="@+id/llMsgCompose"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:background="@color/white"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:weightSum="3" >
 
-        <EditText
-                android:id="@+id/message_input"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="@string/prompt_message"
-                android:imeActionId="@+id/send"
-                android:imeActionLabel="@string/action_send"
-                android:imeOptions="actionSend"
-                android:inputType="text"
-                android:maxLines="1"
-                android:singleLine="true"/>
-        <ImageButton
-                android:id="@+id/send_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@android:drawable/ic_menu_send"
-                android:contentDescription="@string/action_send"/>
+                <EditText
+                    android:id="@+id/inputMsg"
+                    android:layout_width="0dp"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="2"
+                    android:background="@color/bg_msg_input"
+                    android:textColor="@color/text_msg_input"
+                    android:paddingLeft="6dp"
+                    android:paddingRight="6dp"/>
 
-    </LinearLayout>
+                <Button
+                    android:id="@+id/btnSend"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@color/bg_btn_join"
+                    android:textColor="@color/white"
+                    android:text="Send" />
+        </LinearLayout>
 
 </LinearLayout>

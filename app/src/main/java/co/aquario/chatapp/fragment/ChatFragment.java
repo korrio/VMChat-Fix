@@ -17,17 +17,19 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
+import com.parse.ParseUser;
 import com.squareup.otto.Subscribe;
 
 import org.json.JSONException;
@@ -37,15 +39,20 @@ import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.net.ssl.SSLContext;
 
+import co.aquario.chatapp.LoginActivity;
 import co.aquario.chatapp.R;
 import co.aquario.chatapp.adapter.MessageAdapter;
 import co.aquario.chatapp.event.request.ConversationEvent;
+import co.aquario.chatapp.event.request.HistoryEvent;
 import co.aquario.chatapp.event.response.ConversationEventSuccess;
+import co.aquario.chatapp.event.response.HistoryEventSuccess;
 import co.aquario.chatapp.handler.ApiBus;
+import co.aquario.chatapp.model.ChatMessage;
 import co.aquario.chatapp.model.Message;
 
 /**
@@ -62,12 +69,12 @@ public class ChatFragment extends BaseFragment {
     private RecyclerView.Adapter mAdapter;
     private boolean mTyping = false;
     private Handler mTypingHandler = new Handler();
-    private int mUserId = 6;
-    private int mPartnerId = 1;
+    private int mUserId = 5145;
+    private int mPartnerId = 3082;
     private int mCid = 1751;
 
     private String mUsername = "";
-
+    public boolean isConnected = false;
 
     private Socket mSocket;
     {
@@ -125,14 +132,33 @@ public class ChatFragment extends BaseFragment {
     }
 
     @Subscribe
-    public void onGetConversationId(ConversationEventSuccess event) {
+    public void onGetConversation(ConversationEventSuccess event) {
         mCid = event.mCid;
         Log.e("HEY555",mCid + "");
         addLog(getResources().getString(R.string.message_welcome));
 
         getActivity().setTitle(mUserId + ":" + mPartnerId + " in " + mCid);
+        ApiBus.getInstance().post(new HistoryEvent(mCid,20,1));
 
+    }
+
+    @Subscribe
+    public void onGetHistory(HistoryEventSuccess event) {
+        Log.e("HEY666",event.content.size() + "");
+        loadHistory(event.content);
         initConnect();
+    }
+
+    public void loadHistory(List<ChatMessage> messages) {
+        Collections.reverse(messages);
+        for(int i = 0 ; i < messages.size() ; i ++) {
+            ChatMessage m = messages.get(i);
+            if(m.messageType == 0)
+                addMessage(m.messageType,m.senderId,m.sender.username + "(type:"+m.messageType+")",m.message,m.data);
+            else
+                addMessage(m.messageType,m.senderId,m.sender.username + "(type:"+m.messageType+")",m.data,m.data);
+        }
+
     }
 
     public void initConnect() {
@@ -223,12 +249,12 @@ public class ChatFragment extends BaseFragment {
         mMessagesView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mMessagesView.setAdapter(mAdapter);
 
-        mInputMessageView = (EditText) view.findViewById(R.id.message_input);
+        mInputMessageView = (EditText) view.findViewById(R.id.inputMsg);
         mInputMessageView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int id, KeyEvent event) {
-                if (id == R.id.send || id == EditorInfo.IME_NULL) {
-                    attemptSendMessage();
+                if (id == R.id.btnSend || id == EditorInfo.IME_NULL) {
+                    attemptSendMessageType0();
                     return true;
                 }
                 return false;
@@ -267,11 +293,11 @@ public class ChatFragment extends BaseFragment {
             }
         });
 
-        ImageButton sendButton = (ImageButton) view.findViewById(R.id.send_button);
+        Button sendButton = (Button) view.findViewById(R.id.btnSend);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                attemptSendMessage();
+                attemptSendMessageType0();
             }
         });
     }
@@ -296,6 +322,17 @@ public class ChatFragment extends BaseFragment {
         inflater.inflate(R.menu.menu_main, menu);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_leave:
+                leave();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     void addUser(String userName){
         mSocket.emit("add user", userName);
     }
@@ -310,14 +347,22 @@ public class ChatFragment extends BaseFragment {
         addLog(getResources().getQuantityString(R.plurals.message_participants, numUsers, numUsers));
     }
 
-    private void addMessage(int userId,String username, String message) {
+    private void addMessage(int messageType, int userId, String username, String message, String data) {
 
         if(userId == mUserId)
             mMessages.add(new Message.Builder(Message.TYPE_RIGHT)
-                    .username(username).message(message).build());
+                    .messageType(messageType)
+                    .username(username)
+                    .message(message)
+                    .data(data)
+                    .build());
         else
             mMessages.add(new Message.Builder(Message.TYPE_LEFT)
-                    .username(username).message(message).build());
+                    .messageType(messageType)
+                    .username(username)
+                    .message(message)
+                    .data(data)
+                    .build());
         mAdapter.notifyItemInserted(mMessages.size() - 1);
         scrollToBottom();
     }
@@ -339,7 +384,7 @@ public class ChatFragment extends BaseFragment {
         }
     }
 
-    private void attemptSendMessage() {
+    private void attemptSendMessageType0() {
         if (null == mUsername) return;
         if (!mSocket.connected()) return;
 
@@ -353,7 +398,7 @@ public class ChatFragment extends BaseFragment {
 
         mInputMessageView.setText("");
 
-        addMessage(mUserId,mUsername, message);
+        addMessage(0,mUserId,mUsername, message,"{}");
 
         JSONObject jObj = new JSONObject();
         JSONObject jObj2 = new JSONObject();
@@ -374,8 +419,8 @@ public class ChatFragment extends BaseFragment {
 
     private void startSignIn() {
         mUsername = null;
-//        Intent intent = new Intent(getActivity(), LoginActivity.class);
-//        startActivityForResult(intent, REQUEST_LOGIN);
+        Intent intent = new Intent(getActivity(), LoginActivity.class);
+        startActivityForResult(intent, REQUEST_LOGIN);
     }
 
     private void leave() {
@@ -383,14 +428,17 @@ public class ChatFragment extends BaseFragment {
         mSocket.disconnect();
         mSocket.connect();
         startSignIn();
+        ParseUser.logOut();
     }
 
     private void scrollToBottom() {
         mMessagesView.scrollToPosition(mAdapter.getItemCount() - 1);
     }
 
-    public boolean isConnected = false;
 
+/*
+* EMITTER
+*/
     private Emitter.Listener onAuthSuccess = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -432,7 +480,7 @@ public class ChatFragment extends BaseFragment {
         @Override
         public void call(final Object... args) {
 
-            Log.e("5555",args.toString());
+            Log.e("onSendMessage",args.toString());
 
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -440,14 +488,23 @@ public class ChatFragment extends BaseFragment {
                     JSONObject data = (JSONObject) args[0];
                     String username;
                     String message;
+                    String dataJson;
+                    int messageType;
                     int senderId;
 
                     try {
                         //data.getString("time");
                         Log.e("JSON",data.toString(4));
-                        username = "userId:" + data.optInt("senderId");
+                        username = mUsername;
                         senderId = data.optInt("senderId");
                         message = data.optString("message");
+                        messageType = data.optInt("messageType");
+                        dataJson = data.optString("data");
+
+
+                        if(messageType != 0) {
+                            message = message.concat("(" + data.optJSONObject("data").toString(4) + ")");
+                        }
 
 
                     } catch (JSONException e) {
@@ -455,7 +512,7 @@ public class ChatFragment extends BaseFragment {
                     }
                     //removeTyping(username);
                     if(mUserId != senderId)
-                        addMessage(senderId,username, message);
+                        addMessage(messageType,senderId,username, message,dataJson);
                 }
             });
         }

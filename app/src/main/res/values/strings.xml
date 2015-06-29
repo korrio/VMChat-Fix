@@ -3,6 +3,10 @@
 
     <string name="app_name">VMChatApp</string>
 
+    <string name="parse_app_id">j6DTfeUL6JvI9PunllRInpQbUg3dJLCVNTvaAOfY</string>
+    <string name="parse_client_key">VLESF9CjbpiRJ97A1XVllHZuBgO0TJrRJyNA3OL8</string>
+    <string name="facebook_app_id">391414774312517</string>
+
     <string name="action_leave">Leave</string>
     <string name="action_send">Send</string>
     <string name="prompt_message">Message</string>
@@ -18,5 +22,8 @@
     <string name="message_user_joined">%s joined</string>
     <string name="message_user_left">%s left</string>
     <string name="user_action_typing">is typing</string>
+
+    <string name="dlg_ok">OK</string>
+    <string name="dlg_cancel">Cancel</string>
 
 </resources>

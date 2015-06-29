@@ -9,9 +9,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import co.aquario.chatapp.event.request.ConversationEvent;
+import co.aquario.chatapp.event.request.HistoryEvent;
 import co.aquario.chatapp.event.request.SomeEvent;
 import co.aquario.chatapp.event.response.ConversationEventSuccess;
 import co.aquario.chatapp.event.response.FailedEvent;
+import co.aquario.chatapp.event.response.HistoryDataResponse;
+import co.aquario.chatapp.event.response.HistoryEventSuccess;
 import co.aquario.chatapp.event.response.SuccessEvent;
 import co.aquario.chatapp.model.ConversationOneToOne;
 import co.aquario.chatapp.model.SomeData;
@@ -61,7 +64,26 @@ public class ApiHandler {
         });
     }
 
-    @Subscribe public void onGetConversationId(ConversationEvent event) {
+    @Subscribe public void onGetHistory(HistoryEvent event) {
+        Map<String,Integer> opt = new HashMap<>();
+        opt.put("page",event.page);
+        opt.put("size",event.size);
+
+        api.getHistory(event.cid,opt, new Callback<HistoryDataResponse>() {
+            @Override
+            public void success(HistoryDataResponse historyDataResponse, Response response) {
+                if(historyDataResponse.content.size() != 0)
+                    apiBus.post(new HistoryEventSuccess(historyDataResponse.content));
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+
+            }
+        });
+    }
+
+    @Subscribe public void onGetConversation(ConversationEvent event) {
 
         Map<String,Integer> opt = new HashMap<>();
         opt.put("userId",event.userId);
@@ -70,10 +92,10 @@ public class ApiHandler {
         String contentType = "application/json";
 
 
-        api.getConversationId(event.userId,event.partnerId, new Callback<ConversationOneToOne>() {
+        api.getConversation(event.userId, event.partnerId, new Callback<ConversationOneToOne>() {
             @Override
             public void success(ConversationOneToOne conversationOneToOne, Response response) {
-                Log.e("conversationOneToOne",conversationOneToOne.id + "");
+                Log.e("conversationOneToOne", conversationOneToOne.id + "");
                 apiBus.post(new ConversationEventSuccess(conversationOneToOne.id));
             }
 

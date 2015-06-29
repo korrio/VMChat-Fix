@@ -2,15 +2,16 @@ package co.aquario.chatapp;
 
 import android.app.Application;
 
+import com.parse.Parse;
+import com.parse.ParseFacebookUtils;
+
 import co.aquario.chatapp.handler.ApiBus;
 import co.aquario.chatapp.handler.ApiHandler;
 import co.aquario.chatapp.handler.ApiService;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 
-/**
- * Created by Mac on 6/25/15.
- */
+
 public class ChatApp extends Application {
     private static final String ENDPOINT = "https://chat.vdomax.com:1313/api";
 
@@ -22,6 +23,12 @@ public class ChatApp extends Application {
         chatApiHandler = new ApiHandler(this, buildApi(),
                 ApiBus.getInstance());
         chatApiHandler.registerForEvents();
+
+        Parse.initialize(this);
+
+        Parse.setLogLevel(Parse.LOG_LEVEL_DEBUG);
+
+        ParseFacebookUtils.initialize(this);
     }
 
     ApiService buildApi() {
