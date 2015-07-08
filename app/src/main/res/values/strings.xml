@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">VMChatApp</string>
+    <string name="app_name">VMChat:App</string>
 
     <string name="parse_app_id">j6DTfeUL6JvI9PunllRInpQbUg3dJLCVNTvaAOfY</string>
     <string name="parse_client_key">VLESF9CjbpiRJ97A1XVllHZuBgO0TJrRJyNA3OL8</string>
     <string name="facebook_app_id">391414774312517</string>
 
+    <string name="action_share">Share</string>
     <string name="action_leave">Leave</string>
     <string name="action_send">Send</string>
     <string name="prompt_message">Message</string>
@@ -25,5 +26,18 @@
 
     <string name="dlg_ok">OK</string>
     <string name="dlg_cancel">Cancel</string>
+
+    <string name="action_photo">Photo</string>
+    <string name="action_video">Video</string>
+    <string name="action_voice">Voice</string>
+    <string name="action_contact">Contact</string>
+    <string name="action_music">Music</string>
+    <string name="action_youtube">Youtube</string>
+    <string name="action_location">Location</string>
+
+    <string name="empty_input">Cannot be empty.</string>
+    <string name="view_via">View location via</string>
+    <string name="share_location">Share location</string>
+
 
 </resources>

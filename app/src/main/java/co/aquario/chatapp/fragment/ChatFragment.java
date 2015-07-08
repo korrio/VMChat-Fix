@@ -44,7 +44,7 @@ import java.util.List;
 
 import javax.net.ssl.SSLContext;
 
-import co.aquario.chatapp.LoginActivity;
+import co.aquario.chatapp.LandingActivity;
 import co.aquario.chatapp.R;
 import co.aquario.chatapp.adapter.MessageAdapter;
 import co.aquario.chatapp.event.request.ConversationEvent;
@@ -202,7 +202,7 @@ public class ChatFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_main, container, false);
+        View view = inflater.inflate(R.layout.fragment_chat, container, false);
         return view;
     }
 
@@ -419,7 +419,7 @@ public class ChatFragment extends BaseFragment {
 
     private void startSignIn() {
         mUsername = null;
-        Intent intent = new Intent(getActivity(), LoginActivity.class);
+        Intent intent = new Intent(getActivity(), LandingActivity.class);
         startActivityForResult(intent, REQUEST_LOGIN);
     }
 

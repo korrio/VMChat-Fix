@@ -6,8 +6,4 @@
              tools:mContext=".MainActivity"
              tools:ignore="MergeRootFrame">
 
-    <fragment
-            class="co.aquario.chatapp.fragment.ChatFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
 </FrameLayout>
