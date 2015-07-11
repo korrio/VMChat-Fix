@@ -1,2 +1,2 @@
-include ':app', ':ParseLoginUI'
+include ':app', ':ParseLoginUI', ':testlib'
 include ':ChatWidget'

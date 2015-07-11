@@ -59,7 +59,7 @@ import co.aquario.chatapp.model.Message;
  * A chat fragment containing messages view and input form.
  */
 public class ChatFragment extends BaseFragment {
-    private String socketUrl = "https://chat.vdomax.com:1313";
+    private String socketUrl = "https://chat.vdomax.com:1314";
     private static final int REQUEST_LOGIN = 0;
     private static final int TYPING_TIMER_LENGTH = 600;
 
@@ -502,17 +502,17 @@ public class ChatFragment extends BaseFragment {
                         dataJson = data.optString("data");
 
 
-                        if(messageType != 0) {
-                            message = message.concat("(" + data.optJSONObject("data").toString(4) + ")");
-                        }
+                        Log.e("logloglog",mUserId + " " + senderId);
+                        if(mUserId != senderId)
+                            addMessage(messageType,senderId,username, message,dataJson);
 
 
                     } catch (JSONException e) {
-                        return;
+                        addLog(e.getMessage().toString());
+                        //return;
                     }
                     //removeTyping(username);
-                    if(mUserId != senderId)
-                        addMessage(messageType,senderId,username, message,dataJson);
+
                 }
             });
         }

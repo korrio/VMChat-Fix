@@ -680,20 +680,30 @@ public class ChatWidgetFragment extends BaseFragment {
                         messageType = data.optInt("messageType");
                         dataJson = data.optString("data");
 
+                        Log.e("log555",data.toString(4));
 
                         if(messageType != 0) {
                             message = message.concat("(" + data.optJSONObject("data").toString(4) + ")");
                         }
+
+                        if(mUserId != senderId) {
+                            Message msgObj = new Message(Message.MSG_TYPE_TEXT, Message.MSG_STATE_SUCCESS, username, mAvatarPath, "", "", message,"{}", false, true, new Date(System.currentTimeMillis() - (1000 * 60 * 60 * 24) * 8));
+                            listMessages.add(msgObj);
+                            adapter.notifyDataSetChanged();
+                            listView.setSelection(listView.getBottom());
+                        }
+
+
+
+
+
 
 
                     } catch (JSONException e) {
                         return;
                     }
                     //removeTyping(username);
-                    if(mUserId != senderId) {
-                        Message msgObj = new Message(Message.MSG_TYPE_TEXT, Message.MSG_STATE_SUCCESS, username, mAvatarPath, "", "", message,"{}", false, true, new Date(System.currentTimeMillis() - (1000 * 60 * 60 * 24) * 8));
-                        listMessages.add(msgObj);
-                    }
+
 
                         //addMessage(messageType,senderId,username, message,dataJson);
                 }

@@ -14,10 +14,7 @@ import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseUser;
 import com.parse.PushService;
-import com.parse.ui.ParseLoginBuilder;
 import com.txusballesteros.bubbles.BubblesManager;
-
-import java.util.Arrays;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -98,7 +95,10 @@ public class LandingActivity extends AppCompatActivity {
             ChatActivity.startChatActivity(mActivity, Integer.parseInt(userIdTv.getText().toString()), Integer.parseInt(partnerIdTv.getText().toString()));
 
 
-        } else {
+        }
+
+        /*
+        else {
             ParseLoginBuilder loginBuilder = new ParseLoginBuilder(
                     LandingActivity.this);
             Intent parseLoginIntent = loginBuilder.setParseLoginEnabled(true)
@@ -116,6 +116,7 @@ public class LandingActivity extends AppCompatActivity {
                     .build();
             startActivityForResult(parseLoginIntent, 0);
         }
+        */
     }
 
     public static final String LOG_TAG = "555";
